@@ -1,13 +1,17 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const app = express();
-const port = 3000;
+const userAccountController = require('./controllers/userAccountController');
+const linkTreeController = require('./controllers/linkTreeController');
 
-app.use(express.json());
-app.use('/api', require('./controllers/urlController'));
-app.use('/api', require('./controllers/linkTreeController'));
-app.use('/api', require('./controllers/treeNodeController'));
-app.use('/api', require('./controllers/UserAccountController')); // Add this line
+app.use(bodyParser.json());
 
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+// User Account Routes
+app.use('/api/user', userAccountController);
+
+// LinkTree Routes
+app.use('/api/linktree', linkTreeController);
+
+app.listen(3000, () => {
+  console.log('Server running at http://localhost:3000');
 });

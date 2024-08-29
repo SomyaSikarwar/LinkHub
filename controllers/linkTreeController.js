@@ -1,43 +1,45 @@
 const express = require('express');
 const router = express.Router();
 const { createLinkTree, findLinkTreeByUrl, updateLinkTree, deleteLinkTree } = require('../models/linkTree');
+const authenticate = require('../middleware/auth');
 
-// Create a new LinkTree
-router.post('/create-link-tree', (req, res) => {
-  const { url, tree, userAccountId } = req.body;
-  createLinkTree({ url, tree, userAccountId }, (err, result) => {
+// Create a new link tree
+router.post('/create-linktree', authenticate, (req, res) => {
+  const linkTree = { ...req.body, userAccountId: req.userId };
+  createLinkTree(linkTree, (err, result) => {
     if (err) return res.status(500).json({ error: 'Database error' });
-    res.status(201).json({ id: result.id });
+    res.status(201).json({ id: result.insertId });
   });
 });
 
-// Find a LinkTree by URL
-router.get('/link-tree/:url', (req, res) => {
-  const { url } = req.params;
-  findLinkTreeByUrl(url, (err, linkTree) => {
+// Get a link tree by URL
+router.get('/linktree/:url', authenticate, (req, res) => {
+  const url = req.params.url;
+  const userId = req.userId;
+  findLinkTreeByUrl(url, userId, (err, linkTree) => {
     if (err) return res.status(500).json({ error: 'Database error' });
     if (!linkTree) return res.status(404).json({ error: 'LinkTree not found' });
     res.json(linkTree);
   });
 });
 
-// Update a LinkTree
-router.put('/update-link-tree/:id', (req, res) => {
-  const { id } = req.params;
-  const { url, tree } = req.body;
-  updateLinkTree({ id, url, tree }, (err, result) => {
+// Update a link tree
+router.put('/update-linktree', authenticate, (req, res) => {
+  const linkTree = { ...req.body, userAccountId: req.userId };
+  updateLinkTree(linkTree, (err, result) => {
     if (err) return res.status(500).json({ error: 'Database error' });
-    if (result.affectedRows === 0) return res.status(404).json({ error: 'LinkTree not found' });
+    if (result.affectedRows === 0) return res.status(404).json({ error: 'LinkTree not found or unauthorized' });
     res.json({ message: 'LinkTree updated successfully' });
   });
 });
 
-// Delete a LinkTree
-router.delete('/delete-link-tree/:id', (req, res) => {
-  const { id } = req.params;
-  deleteLinkTree(id, (err, result) => {
+// Delete a link tree
+router.delete('/delete-linktree', authenticate, (req, res) => {
+  const { id } = req.body;
+  const userId = req.userId;
+  deleteLinkTree(id, userId, (err, result) => {
     if (err) return res.status(500).json({ error: 'Database error' });
-    if (result.affectedRows === 0) return res.status(404).json({ error: 'LinkTree not found' });
+    if (result.affectedRows === 0) return res.status(404).json({ error: 'LinkTree not found or unauthorized' });
     res.json({ message: 'LinkTree deleted successfully' });
   });
 });

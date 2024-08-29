@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { createUserAccount, findUserAccountByCredentials, updateUserAccount, deleteUserAccount } = require('../models/userAccount');
+const jwt = require('jsonwebtoken');
 
 // Create a new user account
 router.post('/create-account', (req, res) => {
@@ -17,7 +18,9 @@ router.post('/login', (req, res) => {
   findUserAccountByCredentials(userName, password, (err, user) => {
     if (err) return res.status(500).json({ error: 'Database error' });
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
-    res.json(user);
+
+    const token = jwt.sign({ id: user.id }, 'your_secret_key', { expiresIn: '1h' });
+    res.json({ token });
   });
 });
 
